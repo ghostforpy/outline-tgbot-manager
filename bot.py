@@ -28,13 +28,6 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-# async def commands(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-#     message = "/create_key {Имя ключа}\n"
-#     message += "/rename_key {ID ключа} {Имя ключа}\n"
-#     message += "/delete_key {ID ключа}\n"
-#     await update.message.reply_html(message)
-
-
 async def get_keys(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if ADMIN is not None and str(update.message.from_user.id) not in ADMIN:
         return
