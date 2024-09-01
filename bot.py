@@ -35,24 +35,6 @@ logger = logging.getLogger(__name__)
 #     await update.message.reply_html(message)
 
 
-# async def register_server(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-#     if ADMIN is not None and str(update.message.from_user.id) not in ADMIN:
-#         return
-
-#     commands = context.application.handlers.values()
-
-#     await update.message.reply_html("\n".join(commands))
-
-
-# async def get_servers(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-#     if ADMIN is not None and str(update.message.from_user.id) not in ADMIN:
-#         return
-
-#     commands = context.application.handlers.values()
-
-#     await update.message.reply_html("\n".join(commands))
-
-
 async def get_keys(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if ADMIN is not None and str(update.message.from_user.id) not in ADMIN:
         return
@@ -77,16 +59,6 @@ async def create_key(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
         return
     context.user_data["mode"] = "create"
     await update.message.reply_html("Введите имя нового ключа")
-
-    # name = update.message.text.split(maxsplit=1)[1]
-
-    # try:
-    #     key = context.bot_data["outline"].create_key(name)
-    #     await update.message.reply_html(
-    #         f"Key <b>{key.name}</b> Created: <code>{key.access_url}</code>"
-    #     )
-    # except:
-    #     await update.message.reply_html("Couldn't create the key!")
 
 
 async def delete_key_command(
@@ -173,28 +145,6 @@ async def wait_rename_key(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     await update.callback_query.message.reply_html("Введите новое имя ключа")
 
 
-# async def rename_key(
-#     update: Update, context: ContextTypes.DEFAULT_TYPE
-# ) -> None:
-#     outline: OutlineVPN = context.application.bot_data["outline"]
-
-#     _, key_id, name = update.message.text.split(maxsplit=2)
-
-#     if key_id.isnumeric():
-#         key_id = int(key_id)
-#     else:
-#         return await update.message.reply_html("Key ID must be integer and valid!")
-
-#     response = outline.rename_key(key_id, name)
-
-#     if response:
-#         await update.message.reply_html(
-#             f"Key ID <b>{key_id}</b> renamed to -> <b>{name}</b>"
-#         )
-#     else:
-#         await update.message.reply_html(f"Couldn't rename!")
-
-
 async def get_transferred_data(
     update: Update, context: ContextTypes.DEFAULT_TYPE
 ) -> None:
@@ -245,41 +195,14 @@ async def message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
             await update.message.reply_html("Couldn't create the key!")
 
 
-# def collect_data(context: ContextTypes.DEFAULT_TYPE):
-#     db: DataUsageDB = context.application.bot_data["db"]
-
-#     outline: OutlineVPN = context.bot_data["outline"]
-#     keys = outline.get_keys()
-
-#     for key in keys:
-#         db.write(key.key_id, key.used_bytes)
-
-
-# def collect_all_usage(context: ContextTypes.DEFAULT_TYPE):
-#     db: DataUsageDB = context.application.bot_data["db"]
-#     outline: OutlineVPN = context.bot_data["outline"]
-
-#     transferred_data = outline.get_transferred_data()
-#     all_usage = sum(transferred_data["bytesTransferredByUserId"].values())
-
-#     db.write(100, all_usage)
-
-
-# def collect_usage(job_queue):
-#     job_queue.run_repeating(collect_data, interval=60)
-#     job_queue.run_repeating(collect_all_usage, interval=60)
-
 
 BOT_COMMANDS = [
-    # BotCommand("register_server", "register_server"),
-    # BotCommand("get_servers", "get_servers"),
     BotCommand("get_keys", "Активные ключи"),
     BotCommand("create_key", "Создать новый ключ"),
     BotCommand("rename_key", "Переименовать ключ"),
     BotCommand("delete_key", "Удалить ключ"),
     BotCommand("get_server_info", "Инормация о сервере"),
     BotCommand("get_transferred_data", "Информация о переданных данных"),
-    # BotCommand("commands", "Синтаксис команд"),
 ]
 
 
@@ -288,18 +211,8 @@ def main() -> None:
     # Create the Application and pass it your bot's token.
     application = Application.builder().token(os.environ["TOKEN"]).build()
 
-    outline = OutlineVPN(os.environ["api_url"], cert_sha256=os.environ["certSha256"])
-    # db = DataUsageDB(
-    #     "https://influxdb:8086",
-    #     os.environ["DOCKER_INFLUXDB_INIT_ADMIN_TOKEN"],
-    #     os.environ["DOCKER_INFLUXDB_INIT_ORG"],
-    # )
+    application.bot_data["outline"] = OutlineVPN(os.environ["api_url"], cert_sha256=os.environ["certSha256"])
 
-    application.bot_data["outline"] = outline
-    # application.bot_data["db"] = db
-
-    # application.add_handler(CommandHandler("register_server", register_server))
-    # application.add_handler(CommandHandler("get_servers", get_servers))
     application.add_handler(CommandHandler("get_keys", get_keys))
     application.add_handler(CommandHandler("create_key", create_key))
     application.add_handler(CommandHandler("delete_key", delete_key_command))
@@ -316,19 +229,11 @@ def main() -> None:
     )
     application.add_handler(MessageHandler(filters.TEXT, message_handler))
 
-    # commands = [
-    #     {"command": "cancel", "description": "Cancel"},
-    #     {"command": "start", "description": "Start"},
-    #     {"command": "get_chat_idx", "description": "Get Chat ID"},
-    # ]
     request = requests.post(
         f"https://api.telegram.org/bot{os.environ['TOKEN']}/setMyCommands",
         data={"commands": json.dumps([i.to_dict() for i in BOT_COMMANDS])},
     )
     logger.info(f"SET COMMANDS {request}")
-
-    # application.add_handler(CommandHandler("commands", commands))
-    # collect_usage(application.job_queue)
 
     application.run_polling()
 
