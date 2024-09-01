@@ -31,8 +31,8 @@ Bot commands that are implemented
 ```
 get_server_info - Get server info as mentioned
 get_keys - Get all available keys
-create_key - [name] Create a new key specify the name afterwards
-delete_key - [key_id] Delete the key
-rename_key - [key_id, name] Edits access key name
+create_key - Create a new key specify the name afterwards
+delete_key - Delete the key
+rename_key - Edits access key name
 get_transferred_data - Servers all data usage
 ```
