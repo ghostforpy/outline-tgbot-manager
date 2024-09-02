@@ -2,7 +2,7 @@ services:
   bot:
     image: alpine:3.14
     volumes:
-      - .:/code
+      - ./gobot:/code/gobot
     env_file: .env.go
     restart: unless-stopped
-    command: /code/myapp
+    command: /code/gobot
